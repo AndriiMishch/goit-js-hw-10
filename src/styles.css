@@ -1,26 +1,12 @@
-.ss-main {
+.breed-select {
     width: 400px;
+    margin-bottom: 30px;
 }
 
 .cat-info {
     margin-right: 200px;
     display: flex;
     position: relative;
-}
-
-.breed-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-left: 20px;
-    margin-right: 20px;
-}
-
-.cat-image {
-    width: 400px;
-    height: 250px;
-    border-radius: 20px;
-    margin: 30px;
 }
 
 .error {
