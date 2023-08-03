@@ -1,32 +1,116 @@
-import axios from 'axios';
+import SlimSelect from 'slim-select'
+import '../node_modules/slim-select/dist/slimselect.css'
 
-const API_KEY =
-  'live_FNr6YurFuEurXkkPjWLsc9byNk6mZxIdl5DKUUfbdzuUvz76NvP82IQMrXcPePb1';
-const BASE_URL = 'https://api.thecatapi.com/v1';
+export const selectEl = document.querySelector('.breed-select');
+const catInfoContainer = document.querySelector('.cat-info');
+const loaderEl = document.querySelector('.loader');
+const errorEl = document.querySelector('.error');
+const API_KEY = 'live_FNr6YurFuEurXkkPjWLsc9byNk6mZxIdl5DKUUfbdzuUvz76NvP82IQMrXcPePb1';
 
-axios.defaults.headers.common['x-api-key'] = API_KEY;
+export const BASE_URL = 'https://api.thecatapi.com/v1';
 
-export function fetchBreeds() {
-  return axios
-    .get(`${BASE_URL}/breeds`)
-    .then(response => {
-      return response.data;
+const showLoader = () => {
+  loaderEl.style.display = 'block';
+};
+
+const hideLoader = () => {
+  loaderEl.style.display = 'none';
+};
+
+const showBreedSelect = () => {
+  selectEl.style.display = 'block';
+};
+
+const hideBreedSelect = () => {
+  selectEl.style.display = 'none';
+};
+
+const showCatInfo = () => {
+  catInfoContainer.style.display = 'block';
+};
+
+const hideCatInfo = () => {
+  catInfoContainer.style.display = 'none';
+};
+
+const showError = () => {
+  errorEl.style.display = 'block';
+};
+
+const hideError = () => {
+  errorEl.style.display = 'none';
+};
+
+export const fetchBreeds = () => {
+  showLoader();
+  hideBreedSelect();
+  hideCatInfo();
+  hideError();
+
+  fetch(`${BASE_URL}/breeds`)
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(res.status);
+      }
+      return res.json();
     })
-    .catch(error => {
-      console.error('Error fetching breeds:', error);
-      throw error;
-    });
-}
+    .then((data) => {
+      const catInfo = data
+        .map(({ id, name }) => `<option value="${id}">${name}</option>`)
+        .join(" ");
 
-export function fetchCatByBreed(breedId) {
-  const url = `${BASE_URL}/images/search?breed_ids=${breedId}`;
-  return axios
-    .get(url)
-    .then(response => {
-      return response.data;
+      selectEl.insertAdjacentHTML("beforeend", catInfo);
+
+
+  
     })
-    .catch(error => {
-      console.error('Error fetching cat:', error);
-      throw error;
+    .catch((error) => {
+      console.log('Failure', error);
+      showError();
+    })
+    .finally(() => {
+      hideLoader();
+      showBreedSelect();
+      new SlimSelect({
+        select: '#single'
+      })
     });
-}
+};
+
+export const fetchCatByBreed = (breedId) => {
+  showLoader();
+  hideCatInfo();
+  hideError();
+  
+
+  fetch(`${BASE_URL}/images/search?breed_ids=${breedId}&api_key=${API_KEY}`)
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(res.status);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      if (data.length > 0) {
+        const catData = data[0];
+        const catImage = `<img src="${catData.url}" alt="Cat Image" width = 500>`;
+        const catInfo = `
+          <h2>${catData.breeds[0].name}</h2>
+          <p>Description: ${catData.breeds[0].description}</p>
+          <p>Temperament: ${catData.breeds[0].temperament}</p>
+        `;
+
+        catInfoContainer.innerHTML = catImage + catInfo;
+        showCatInfo();
+      } else {
+        showError();
+      }
+    })
+    .catch((error) => {
+      console.log('Failure', error);
+      showError();
+    })
+    .finally(() => {
+      hideLoader();
+    });
+};
