@@ -1,9 +1,133 @@
-import {selectEl, BASE_URL, fetchBreeds, fetchCatByBreed} from './cat-api';
+import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
+import SlimSelect from 'slim-select';
+import './styles.css';
 
-fetchBreeds();
+const BASE_URL = 'https://api.thecatapi.com/v1/breeds';
 
-selectEl.addEventListener('change', (event) => {
-  const selectedBreedId = event.target.value;
-
-  fetchCatByBreed(selectedBreedId);
+const breedSelect = document.querySelector('.breed-select');
+const select = new SlimSelect({
+  select: breedSelect,
 });
+const catInfoDiv = document.querySelector('.cat-info');
+const loader = document.querySelector('.loader');
+const error = document.querySelector('.error');
+
+function showLoader() {
+  loader.style.display = 'block';
+}
+
+function hideLoader() {
+  loader.style.display = 'none';
+}
+
+function showError() {
+  error.style.display = 'block';
+}
+
+function hideError() {
+  error.style.display = 'none';
+}
+
+function showcatInfoDiv() {
+  catInfoDiv.style.display = 'block';
+}
+
+function hidecatInfoDiv() {
+  catInfoDiv.style.display = 'none';
+}
+
+function showbreedSelect() {
+  breedSelect.style.display = 'block';
+}
+
+function hidebreedSelect() {
+  breedSelect.style.display = 'none';
+}
+
+
+breedSelect.style.display = 'none';
+catInfoDiv.style.display = 'none';
+hideError();
+
+fetchBreeds(BASE_URL)
+  .then(breeds => {
+    hideLoader();
+    select.setData(
+      breeds.map(breed => ({ value: breed.id, text: breed.name }))
+    );
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    hideLoader();
+    showError();
+  });
+
+  let i = 0;
+breedSelect.addEventListener('change', event => {
+  const selectedBreedId = event.target.value;
+    if (i < 1) {
+      hideLoader();
+      hideError();
+      hidecatInfoDiv();
+      i = i + 1;
+    } else {
+    if (selectedBreedId) {
+      showLoader();
+      hideError();
+      hidecatInfoDiv();
+      fetchCatByBreed(selectedBreedId)
+        .then(catData => {
+          hideLoader();
+          displayCatInfo(catData[0]);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          hideLoader();
+          showError();
+        });
+    } else {
+      clearCatInfo();
+    } }
+  });
+
+
+function displayCatInfo(catData) {
+  clearCatInfo();
+
+  const catImage = document.createElement('img');
+  catImage.src = catData.url;
+  catImage.classList.add('cat-image');
+
+  const breedInfo = document.createElement('div');
+  breedInfo.classList.add('breed-info');
+
+  const breedName = document.createElement('h2');
+  breedName.textContent = catData.breeds[0].name;
+  breedName.classList.add('breed-name');
+
+  const description = document.createElement('p');
+  description.textContent = catData.breeds[0].description;
+  description.classList.add('breed-description');
+
+  const temperament = document.createElement('p');
+  temperament.textContent = `Temperament: ${catData.breeds[0].temperament}`;
+  temperament.classList.add('breed-temperament');
+
+  breedInfo.innerHTML = `
+    ${breedName.outerHTML}
+    ${description.outerHTML}
+    ${temperament.outerHTML}
+  `;
+
+  catInfoDiv.innerHTML = `
+    ${catImage.outerHTML}
+    ${breedInfo.outerHTML}
+  `;
+
+  catInfoDiv.style.removeProperty('display');
+}
+
+function clearCatInfo() {
+  catInfoDiv.innerHTML = '';
+  catInfoDiv.style.display = 'none';
+}
