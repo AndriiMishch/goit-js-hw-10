@@ -1,8 +1,5 @@
 import { fetchBreeds, fetchCatByBreed } from './cat-api.js';
 import SlimSelect from 'slim-select';
-import './styles.css';
-
-const BASE_URL = 'https://api.thecatapi.com/v1/breeds';
 
 const breedSelect = document.querySelector('.breed-select');
 const select = new SlimSelect({
@@ -28,28 +25,15 @@ function hideError() {
   error.style.display = 'none';
 }
 
-function showcatInfoDiv() {
-  catInfoDiv.style.display = 'block';
-}
-
 function hidecatInfoDiv() {
   catInfoDiv.style.display = 'none';
 }
-
-function showbreedSelect() {
-  breedSelect.style.display = 'block';
-}
-
-function hidebreedSelect() {
-  breedSelect.style.display = 'none';
-}
-
 
 breedSelect.style.display = 'none';
 catInfoDiv.style.display = 'none';
 hideError();
 
-fetchBreeds(BASE_URL)
+fetchBreeds()
   .then(breeds => {
     hideLoader();
     select.setData(
@@ -62,15 +46,15 @@ fetchBreeds(BASE_URL)
     showError();
   });
 
-  let i = 0;
+let i = 0;
 breedSelect.addEventListener('change', event => {
   const selectedBreedId = event.target.value;
-    if (i < 1) {
-      hideLoader();
-      hideError();
-      hidecatInfoDiv();
-      i = i + 1;
-    } else {
+  if (i < 1) {
+    hideLoader();
+    hideError();
+    hidecatInfoDiv();
+    i = i + 1;
+  } else {
     if (selectedBreedId) {
       showLoader();
       hideError();
@@ -87,9 +71,9 @@ breedSelect.addEventListener('change', event => {
         });
     } else {
       clearCatInfo();
-    } }
-  });
-
+    }
+  }
+});
 
 function displayCatInfo(catData) {
   clearCatInfo();
